@@ -1,0 +1,37 @@
+@startuml
+title WarmHouse Automatization Component (To-Be)
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(AutomatizationSystem, "Автоматизация") {
+  ContainerDb(AutomatizationDB, "База автоматизации", "MongoDB", "Хранит пользовательские сценарии автоматизации")
+  Container(Kafka, "Kafka", "Kafka", "Обрабатывает события для запуска сценариев и изменения состояний")
+
+  Component(AutomatizationController, "AutomatizationController", "Spring Boot", "REST API для управления сценариями автоматизации")
+  Component(AutomatizationService, "AutomatizationService", "Spring Service", "Бизнес-логика обработки сценариев автоматизации")
+  Component(AutomatizationRepository, "AutomatizationRepository", "Spring MongoDB", "Доступ к БД сценариев автоматизации")
+
+  Component(CommandDispatcher, "CommandDispatcher", "Spring Service", "Обрабатывает команды")
+  Component(TriggerHandler, "TriggerHandler", "Kafka Consumer", "Слушает события и инициирует выполнение сценариев")
+
+  Component(EventPublisher, "EventPublisher", "Kafka Producer", "Публикует события о запущенных сценариях")
+  Component(EventConsumer, "EventConsumer", "Kafka Consumer", "Обрабатывает входящие события от Kafka")
+}
+
+Rel(AutomatizationController, AutomatizationService, "Вызывает бизнес-логику")
+Rel(AutomatizationService, AutomatizationRepository, "Читает/Записывает сценарии")
+Rel(AutomatizationRepository, AutomatizationDB, "Хранит сценарии автоматизации")
+
+Rel(AutomatizationService, CommandDispatcher, "Передаёт сценарии на выполнение")
+Rel(EventConsumer, TriggerHandler, "Принимает события")
+Rel(CommandDispatcher, EventPublisher, "Публикует события о запущенных сценариях")
+Rel(TriggerHandler, CommandDispatcher, "Инициирует выполнение сценариев при наступлении событий")
+
+Container(DeviceManagementSystem, "Управление устройствами", "Java, Spring", "Добавление, удаление и контроль устройств")
+
+Rel(EventPublisher, Kafka, "Публикует информацию о запущенных сценариях")
+Rel(Kafka, EventConsumer, "Получает события и обрабатывает их")
+
+@enduml

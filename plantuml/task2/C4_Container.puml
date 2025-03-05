@@ -1,0 +1,98 @@
+@startuml
+title WarmHouse Container Diagram (To-Be)
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(User, "Пользователь", "Управляет умным домом: отопление, освещение, ворота, видеонаблюдение")
+Person(Specialist, "Специалист", "Помогает с подключением устройств при необходимости")
+Person(Partner, "Партнёр-производитель устройств", "Поставляет устройства умного дома")
+
+System(WarmHouseSystem, "Экосистема WarmHouse", "SaaS-система для управления умным домом")
+System_Ext(Sensor, "Датчик температуры", "Передаёт данные о температуре в систему")
+
+System_Ext(WiFiHub, "Wi-Fi хаб", "Позволяет управлять устройствами через Wi-Fi")
+System_Ext(ZigbeeHub, "Zigbee хаб", "Позволяет управлять устройствами через Zigbee")
+
+System_Ext(SmartDevice, "Умное устройство", "Подключается по стандартным протоколам для управления домом")
+
+Container_Boundary(WarmHouseSystem, "Экосистема WarmHouse") {
+    Container(WebApp, "Веб-приложение", "React", "Панель управления умным домом для пользователя")
+    Container(MobileApp, "Мобильное приложение", "Swift/Kotlin", "Мобильный доступ к умному дому")
+
+    Container(API_Gateway, "API Gateway", "Kong", "Маршрутизация и защита API трафика")
+
+    Container(HeatingSystem, "Управление отоплением", "Java, Spring", "Регулирование температуры")
+    ContainerDb(HeatingDB, "База отопления", "PostgreSQL", "Хранит настройки и историю")
+
+    Container(DeviceManagementSystem, "Управление устройствами", "Java, Spring", "Добавление, удаление и контроль устройств")
+    ContainerDb(DeviceDB, "База устройств", "PostgreSQL", "Хранит данные об устройствах")
+
+    Container(HomeConnectionService, "Подключение дома", "Java, Spring", "Регистрация и привязка дома")
+    ContainerDb(HomeDB, "База домов", "PostgreSQL/MongoDB", "Хранит данные о домах")
+
+    Container(MonitoringSystem, "Мониторинг", "Python, Kafka", "Система телеметрии и уведомлений")
+    ContainerDb(MonitoringDB, "База мониторинга", "InfluxDB", "Хранит телеметрию")
+
+    Container(Automatization, "Сценарии автоматизации", "Java, Spring", "Автоматизация работы")
+    ContainerDb(RulesDB, "База сценариев", "MongoDB", "Хранит пользовательские сценарии")
+
+    Container(AuthService, "Сервис аутентификации", "Keycloak", "Безопасный доступ")
+    ContainerDb(AuthDB, "База аутентификации", "PostgreSQL", "Хранит учетные записи")
+
+    Container(PartnerIntegration, "Интеграция с партнёрами", "Java, Spring", "Подключение устройств партнёров")
+    ContainerDb(PartnerDB, "База партнёров", "PostgreSQL", "Хранит данные о партнёрах")
+
+    Container(Broker, "Kafka)", "Kafka", "Асинхронное взаимодействие между сервисами")
+
+    Container(DeviceCommunicationService, "Коммуникация с устройствами", "Go", "Абстракция взаимодействия с протоколами")
+
+    ContainerDb(EventDB, "Хранилище событий", "PostgreSQL/TimeSeriesDB", "Сохраняет историю событий и команд")
+}
+
+Rel(User, WebApp, "Управляет домом через веб-интерфейс")
+Rel(User, MobileApp, "Управляет домом через мобильное приложение")
+
+Rel(WebApp, API_Gateway, "Отправляет запросы в API")
+Rel(MobileApp, API_Gateway, "Отправляет запросы в API")
+
+Rel(API_Gateway, HeatingSystem, "Регулирует температуру")
+Rel(HeatingSystem, HeatingDB, "Сохраняет данные об отоплении")
+
+Rel(API_Gateway, DeviceManagementSystem, "Добавляет и управляет устройствами")
+Rel(DeviceManagementSystem, DeviceDB, "Хранит данные об устройствах")
+
+Rel(API_Gateway, HomeConnectionService, "Привязывает дом к системе")
+Rel(HomeConnectionService, HomeDB, "Сохраняет информацию о доме")
+
+Rel(API_Gateway, Automatization, "Создаёт и управляет сценариями")
+Rel(Automatization, RulesDB, "Сохраняет пользовательские сценарии")
+
+Rel(API_Gateway, AuthService, "Авторизует пользователя")
+Rel(AuthService, AuthDB, "Хранит учетные записи пользователей")
+
+Rel(API_Gateway, PartnerIntegration, "Направляет запросы к API партнёров")
+Rel(PartnerIntegration, DeviceManagementSystem, "Передает информацию о подключении устройства партнера")
+
+Rel(HeatingSystem, DeviceManagementSystem, "Узнает о состоянии устройств")
+Rel(HeatingSystem, Broker, "Публикует события об изменении температуры")
+
+Rel(Broker, MonitoringSystem, "Передаёт события об изменениях состояния")
+Rel(MonitoringSystem, MonitoringDB, "Сохраняет данные о телеметрии")
+
+Rel(Broker, DeviceCommunicationService, "Передаёт команды устройствам")
+Rel(DeviceCommunicationService, WiFiHub, "Передаёт команды Wi-Fi устройствам")
+Rel(DeviceCommunicationService, ZigbeeHub, "Передаёт команды Zigbee устройствам")
+
+Rel(WiFiHub, SmartDevice, "Управляет устройством")
+Rel(ZigbeeHub, SmartDevice, "Управляет устройством")
+
+Rel(WiFiHub, Sensor, "Запрашивает данные")
+Rel(ZigbeeHub, Sensor, "Запрашивает данные")
+
+Rel(Automatization, Broker, "Реагирует на события и выполняет сценарии")
+
+Rel(Broker, EventDB, "Сохраняет все события")
+
+Rel(Partner, PartnerIntegration, "Обменивается данными через API (Async)")

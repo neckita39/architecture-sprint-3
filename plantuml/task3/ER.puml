@@ -1,0 +1,95 @@
+@startuml
+title WarmHouse ER Diagram (To-Be)
+
+top to bottom direction
+
+entity User {
+	+Int id 
+	+String name
+	+String email
+	+String password
+	+String role_id
+	+Date date_registered
+	+Date last_login
+}
+
+entity Role {
+	+Int id
+	+String name
+	+String description
+}
+
+entity House {
+	+Int id 
+	+String name
+	+String address
+	+String description
+	+String timezone
+	+Int owner_id
+}
+
+entity DeviceType {
+	+Int id 
+	+String name
+	+String description
+}
+
+entity Device {
+	+Int id 
+	+Int house_id
+	+Int type_id
+	+String name
+	+String serial_number
+	+String protocol
+	+String status
+	+Timestamp last_updated
+}
+
+entity DeviceGroup {
+	+Int id 
+	+Int house_id
+	+String name
+	+String description
+	+String group_type
+}
+
+entity Scenario {
+	+Int id 
+	+Int house_id
+	+String name
+	+String description
+	+String trigger_type
+	+String conditions
+	+String actions
+	+Timestamp last_updated
+}
+
+entity Module {
+	+Int id 
+	+Int device_id
+	+String name
+	+String function
+	+String status
+	+Timestamp last_updated
+}
+
+entity TelemetryData {
+	+Int id 
+	+Int device_id
+	+String data_type
+	+Float value
+	+Timestamp created_at
+}
+
+User <--> Role : "1:N"
+User <--> House : "N:M (User_House)"
+House <--> Device : "1:N"
+DeviceType <--> Device : "1:N"
+Device <--> Module: "1:N"
+Device <--> TelemetryData : "1:N"
+House <--> DeviceGroup : "1:N"
+DeviceGroup <--> Device : "N:M (DeviceGroup_Device)"
+Scenario <--> Device: "N:M (Scenario_Device)"
+Scenario <--> DeviceGroup : "N:M (Scenario_DeviceGroup)"
+Scenario <--> House: "1:N"
+@enduml

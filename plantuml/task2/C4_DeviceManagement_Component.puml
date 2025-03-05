@@ -1,0 +1,39 @@
+@startuml
+title WarmHouse Device Management Component (To-Be)
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(DeviceManagementSystem, "Управление устройствами") {
+  ContainerDb(DeviceDB, "База данных устройств", "PostgreSQL", "Хранит данные об устройствах")
+  Container(Kafka, "Kafka", "Kafka", "Обрабатывает события об изменении состояния устройств")
+
+  Component(DeviceController, "DeviceController", "Spring Boot", "REST API для управления устройствами")
+  Component(DeviceService, "DeviceService", "Spring Service", "Бизнес-логика управления устройствами")
+  Component(DeviceRepository, "DeviceRepository", "Spring JPA", "Доступ к БД устройств")
+
+  Component(CommandDispatcher, "CommandDispatcher", "Spring Service", "Обрабатывает команды управления устройствами")
+  Component(StateManager, "StateManager", "Spring Service", "Хранит состояние устройств и синхронизирует с БД")
+  Component(ProtocolAdapter, "ProtocolAdapter", "Spring Service", "Связывает систему с хабами (Wi-Fi, Zigbee)")
+
+  Component(EventPublisher, "EventPublisher", "Kafka Producer", "Публикует события об изменении состояния")
+  Component(EventConsumer, "EventConsumer", "Kafka Consumer", "Обрабатывает события от Kafka")
+}
+
+Rel(DeviceController, DeviceService, "Вызывает бизнес-логику")
+Rel(DeviceService, DeviceRepository, "Читает/Записывает данные об устройствах")
+Rel(DeviceRepository, DeviceDB, "Хранит данные об устройствах")
+
+Rel(DeviceService, CommandDispatcher, "Обрабатывает команды")
+Rel(CommandDispatcher, StateManager, "Обновляет состояние устройства")
+Rel(StateManager, DeviceRepository, "Сохраняет состояние в БД")
+
+Rel(CommandDispatcher, ProtocolAdapter, "Передаёт команды в хабы")
+Rel(ProtocolAdapter, EventPublisher, "Публикует события об изменении состояния")
+Rel(EventPublisher, Kafka, "Отправляет события в Kafka")
+
+Rel(Kafka, EventConsumer, "Принимает события об изменениях")
+Rel(EventConsumer, StateManager, "Обновляет данные о состоянии устройств")
+
+@enduml
