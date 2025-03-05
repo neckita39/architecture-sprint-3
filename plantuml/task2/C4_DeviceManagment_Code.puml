@@ -1,0 +1,64 @@
+@startuml
+title WarmHouse Device Management Add Device Code (To-Be)
+
+top to bottom direction
+
+class DeviceEntity {
+  +String id
+  +String name
+  +String type_id
+  +String house_id
+  +String serial_number
+  +String status
+  +Date lastUpdated
+}
+
+class DeviceCommand {
+  +String name
+  +String type_id
+  +String house_id
+  +String serial_number
+}
+
+class DeviceController {
+  +Response addDevice(DeviceCommand request)
+}
+
+class DeviceService {
+  +Device addDevice(DeviceCommand command)
+}
+
+class DeviceRepository {
+  +DeviceEntity save(DeviceEntity device)
+  +DeviceEntity findById(String id)
+}
+
+class CommandDispatcher {
+  +void dispatchCommand(DeviceCommand command)
+}
+
+class ProtocolAdapter {
+  +void sendCommandToHub(DeviceCommand command)
+}
+
+class EventPublisher {
+  +void publishDeviceEvent(String eventType, DeviceCommand command)
+}
+
+class StateManager {
+  +void updateState(DeviceEntity device)
+  +DeviceEntity getCurrentState(String deviceId)
+}
+
+DeviceCommand --> DeviceController
+DeviceController --> DeviceService
+DeviceService --> DeviceRepository
+DeviceRepository --> DeviceEntity
+
+DeviceService --> CommandDispatcher
+CommandDispatcher --> ProtocolAdapter
+CommandDispatcher --> EventPublisher
+
+DeviceService --> StateManager
+StateManager --> DeviceEntity
+@enduml
